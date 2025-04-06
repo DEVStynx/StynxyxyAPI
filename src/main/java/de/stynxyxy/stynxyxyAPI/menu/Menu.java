@@ -44,7 +44,7 @@ public abstract class Menu implements InventoryHolder, Listener {
     @EventHandler
     public void inventoryClickEvent(InventoryClickEvent event) {
         if (event.getInventory().getHolder() != this) return;
-        if (buttons.size() < event.getSlot()) return;
+        if (size < event.getSlot()) return;
 
         MenuItem slot = buttons.stream().filter(item -> item.slot == event.getSlot()).findFirst().get();
         if (slot == null)
