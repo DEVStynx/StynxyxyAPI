@@ -35,7 +35,8 @@ public class MessageUtil {
         return string;
     }
 
-    public String formatStringwPrefix(String string) {
-        return formatString(PaperAPI.prefix+string);
+    public static String formatStringwPrefix(String msg) {
+        String prefix = PaperAPI.prefix != null ? PaperAPI.prefix : "§7[§aStynxyxyAPI§7] §f";
+        return prefix + formatString(msg);
     }
 }

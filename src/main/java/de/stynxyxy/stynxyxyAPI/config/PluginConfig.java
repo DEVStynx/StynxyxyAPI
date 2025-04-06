@@ -67,6 +67,7 @@ public abstract class PluginConfig {
     public String getFormatted(String path) {
         return MessageUtil.formatString(getConfig().getString(path));
     }
+
     public String getFormattedWPrefix(String path) {
         return MessageUtil.formatStringwPrefix(getConfig().getString(path));
     }

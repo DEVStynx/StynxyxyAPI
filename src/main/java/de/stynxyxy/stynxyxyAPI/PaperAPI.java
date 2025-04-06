@@ -33,7 +33,9 @@ public class PaperAPI extends BaseAPI{
 
         MainConfig mainConfig = new MainConfig();
         PaperAPI.registerConfig(mainConfig);
-        PaperAPI.registerConfig(new DatabaseConfiguration());
+
+        DatabaseConfiguration databaseConfiguration = new DatabaseConfiguration();
+        PaperAPI.registerConfig(databaseConfiguration);
 
 
         prefix = mainConfig.getFormatted("prefix");
