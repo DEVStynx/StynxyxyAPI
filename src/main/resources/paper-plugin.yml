@@ -1,0 +1,7 @@
+name: StynxyxyAPI
+version: '1.0-ALPHA'
+main: de.stynxyxy.stynxyxyAPI.StynxyxyAPI
+api-version: '1.21'
+prefix: StynxyxyPlugin
+authors: [ Stynxyxy ]
+description: A Gun Plugin
