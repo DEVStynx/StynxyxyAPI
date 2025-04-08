@@ -13,6 +13,7 @@ import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public abstract class Menu implements InventoryHolder, Listener {
     public int size;
@@ -40,6 +41,22 @@ public abstract class Menu implements InventoryHolder, Listener {
             inventory.setItem(button.slot,button.itemStack);
         }
         return inventory;
+    }
+    public void fillSpaceWithButton(MenuItem menuItem) {
+        List<Integer> filledspots = new ArrayList();
+        int i = 0;
+        for (MenuItem button: buttons) {
+            filledspots.add(button.slot);
+            i++;
+        }
+
+        for (int j = 0; j < size; j++) {
+            if (filledspots.contains(j))
+                continue;
+            MenuItem button = menuItem;
+            button.slot = j;
+            addButton(button);
+        }
     }
     @EventHandler
     public void inventoryClickEvent(InventoryClickEvent event) {

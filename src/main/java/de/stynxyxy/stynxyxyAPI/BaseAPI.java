@@ -31,5 +31,8 @@ public class BaseAPI {
     public static void setUsingDatabase(boolean database) {
         usingDatabase = database;
     }
+    public static boolean getUsingDatabase() {
+        return usingDatabase;
+    }
 
 }
