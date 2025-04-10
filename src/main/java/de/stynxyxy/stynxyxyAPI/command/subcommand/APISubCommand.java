@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class APISubCommand extends APIGroupedCommand {
+public abstract class APISubCommand extends APIGroupedCommand {
 
     public APISubCommand(@NotNull String name, @NotNull String description, @NotNull String usageMessage, @NotNull List<String> aliases) {
         super(name, description, usageMessage, aliases);
@@ -20,16 +20,8 @@ public class APISubCommand extends APIGroupedCommand {
         super(name, description, permission);
     }
 
-
     @Override
-    public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] strings) {
-        return false;
-    }
-
-    @Override
-    public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
-        return List.of();
-    }
+    public abstract boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args);
 
     /**
      *Can be implemented to create new Sub Commands

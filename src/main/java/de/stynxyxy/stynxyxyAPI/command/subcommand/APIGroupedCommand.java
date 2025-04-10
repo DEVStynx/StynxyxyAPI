@@ -15,6 +15,8 @@ public abstract class APIGroupedCommand extends APICommand {
     public APIGroupedCommand(@NotNull String name) {
         super(name);
         subcommands = new HashSet<>();
+        initSubcommands();
+
     }
 
 

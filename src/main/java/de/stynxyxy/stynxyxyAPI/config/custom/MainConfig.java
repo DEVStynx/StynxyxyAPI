@@ -5,7 +5,7 @@ import de.stynxyxy.stynxyxyAPI.PaperAPI;
 import de.stynxyxy.stynxyxyAPI.annotations.config.AutoRegisterConfig;
 import de.stynxyxy.stynxyxyAPI.config.PluginConfig;
 
-@AutoRegisterConfig
+
 public class MainConfig extends PluginConfig {
 
     public MainConfig() {
