@@ -1,6 +1,7 @@
 package de.stynxyxy.stynxyxyAPI;
 
-import org.bukkit.plugin.java.JavaPlugin;
+import lombok.Getter;
+import lombok.Setter;
 
 
 import java.util.logging.Logger;
@@ -10,8 +11,12 @@ public class BaseAPI {
     private static BaseAPI INSTANCE;
     public static Logger APIlogger;
     public static String APILabel = "StynxyxyAPI";
+    @Setter
+    @Getter
     private static String language;
-
+    protected static boolean requiresDatabase = false;
+    @Setter
+    @Getter
     private static boolean usingDatabase;
 
 
@@ -25,14 +30,9 @@ public class BaseAPI {
     protected  static void setAPIlogger(Logger logger) {
         APIlogger = logger;
     }
-    public static void setLanguage(String planguage) {
-        language = planguage;
-    }
-    public static void setUsingDatabase(boolean database) {
-        usingDatabase = database;
-    }
     public static boolean getUsingDatabase() {
         return usingDatabase;
     }
+    public static void requireDatabase() {requiresDatabase = true;}
 
 }

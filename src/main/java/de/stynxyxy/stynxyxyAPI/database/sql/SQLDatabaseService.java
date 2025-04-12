@@ -1,6 +1,7 @@
 package de.stynxyxy.stynxyxyAPI.database.sql;
 
 import de.stynxyxy.stynxyxyAPI.BaseAPI;
+import de.stynxyxy.stynxyxyAPI.annotations.Annotationprocessor;
 import de.stynxyxy.stynxyxyAPI.database.BaseRepository;
 import de.stynxyxy.stynxyxyAPI.database.DatabaseService;
 
@@ -34,8 +35,11 @@ public class SQLDatabaseService extends DatabaseService {
         configuration.setProperty("hibernate.connection.password", password);
 
         configuration.setProperty("hibernate.connection.driver_class", driver);
-        for (Class<?> loadedClass : entityList) {
-            BaseAPI.APIlogger.info("Added "+loadedClass.getName()+" to Hibernate Config!");
+        for (Class<?> passedClass: entityList) {
+            configuration.addAnnotatedClass(passedClass);
+        }
+        for (Class<?> loadedClass : Annotationprocessor.findEntites()) {
+            BaseAPI.APIlogger.info("Automatically "+loadedClass.getName()+" to Hibernate Config!");
             configuration.addAnnotatedClass(loadedClass);
         }
         configuration.setProperty("hibernate.show_sql", "true");

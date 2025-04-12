@@ -2,6 +2,7 @@ package de.stynxyxy.stynxyxyAPI.config;
 
 import de.stynxyxy.stynxyxyAPI.BaseAPI;
 import de.stynxyxy.stynxyxyAPI.PaperAPI;
+import de.stynxyxy.stynxyxyAPI.annotations.AutoRegister;
 import de.stynxyxy.stynxyxyAPI.annotations.config.AutoRegisterConfig;
 import de.stynxyxy.stynxyxyAPI.util.MessageUtil;
 import lombok.Getter;

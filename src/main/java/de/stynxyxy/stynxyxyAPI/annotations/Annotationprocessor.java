@@ -2,28 +2,31 @@ package de.stynxyxy.stynxyxyAPI.annotations;
 
 import de.stynxyxy.stynxyxyAPI.BaseAPI;
 import de.stynxyxy.stynxyxyAPI.PaperAPI;
-import de.stynxyxy.stynxyxyAPI.annotations.config.AutoRegister;
 import de.stynxyxy.stynxyxyAPI.annotations.config.AutoRegisterConfig;
-import de.stynxyxy.stynxyxyAPI.annotations.config.AutoRegisterEntity;
+import de.stynxyxy.stynxyxyAPI.annotations.db.AutoRegisterEntity;
 import de.stynxyxy.stynxyxyAPI.command.APICommand;
 import de.stynxyxy.stynxyxyAPI.config.PluginConfig;
 import jakarta.persistence.Entity;
-import org.bukkit.plugin.Plugin;
+import jakarta.persistence.Id;
+import org.bukkit.event.Listener;
 import org.reflections.Reflections;
 
-import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Annotationprocessor {
     private static Reflections reflections;
+    private static Set<Class<?>> listeners;
 
     static {
         if (PaperAPI.getCustomPlugin() == null) {
             throw new RuntimeException("The Plugin doesn't exist yet!");
         }
         reflections = new Reflections(PaperAPI.getCustomPlugin().getClass().getPackageName());
+
+        listeners = new HashSet<>();
+
     }
 
     public static Set<Class<? extends PluginConfig>> findAutoRegisteredConfigs() {
@@ -42,13 +45,17 @@ public class Annotationprocessor {
     }
 
     public static Set<Class<? extends APICommand>> findRegisteredCommands() {
+        listeners.clear();
         Set<Class<? extends APICommand>> commandClasses = new HashSet<>();
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(AutoRegister.class);
         for (Class<?> clazz: classes) {
-            if (clazz.isAssignableFrom(APICommand.class)) {
+            if (APICommand.class.isAssignableFrom(clazz)) {
                 Class<? extends APICommand> commandClass = (Class<? extends APICommand>) clazz;
                 commandClasses.add(commandClass);
-                BaseAPI.APIlogger.info("☑️Automatically Registered Command: "+clazz.getSimpleName());
+            }
+            if (Listener.class.isAssignableFrom(clazz)) {
+                Class<?> listener = clazz;
+                listeners.add(listener);
             }
         }
 
@@ -60,11 +67,24 @@ public class Annotationprocessor {
         Set<Class<?>> entityClasses = new HashSet<>();
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(AutoRegisterEntity.class);
         for (Class<?> clazz: classes) {
-            if (clazz.isAnnotationPresent(Entity.class)) {
+            AutoRegisterEntity annotation = clazz.getAnnotation(AutoRegisterEntity.class);
+            if (clazz.isAnnotationPresent(Entity.class) || annotation.force()) {
                 entityClasses.add(clazz);
                 BaseAPI.APIlogger.info("☑️Automatically Registered Entity: "+clazz.getSimpleName());
             }
+            if (annotation.autorepository()) {
+                for (Field field : clazz.getDeclaredFields()) {
+                    if (field.isAnnotationPresent(Id.class)) {
+                        PaperAPI.getDatabaseService().createRepository(clazz,field.getType());
+                        BaseAPI.APIlogger.info("☑️Created Repository Automatically for Entity: "+clazz.getSimpleName()+ "and id: "+field.getName());
+                    }
+                }
+            }
         }
         return entityClasses;
+    }
+
+    public static Set<Class<?>> getListeners() {
+        return listeners;
     }
 }

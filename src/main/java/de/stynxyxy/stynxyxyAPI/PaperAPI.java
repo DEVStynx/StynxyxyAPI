@@ -1,6 +1,7 @@
 package de.stynxyxy.stynxyxyAPI;
 
 import de.stynxyxy.stynxyxyAPI.annotations.Annotationprocessor;
+import de.stynxyxy.stynxyxyAPI.annotations.AutoRegister;
 import de.stynxyxy.stynxyxyAPI.command.APICommand;
 import de.stynxyxy.stynxyxyAPI.command.APIRegistry;
 import de.stynxyxy.stynxyxyAPI.config.custom.DatabaseConfiguration;
@@ -8,10 +9,11 @@ import de.stynxyxy.stynxyxyAPI.config.custom.MainConfig;
 import de.stynxyxy.stynxyxyAPI.config.PluginConfig;
 import de.stynxyxy.stynxyxyAPI.database.DatabaseService;
 import de.stynxyxy.stynxyxyAPI.database.sql.SQLDatabaseService;
+import lombok.Getter;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 
@@ -19,6 +21,7 @@ public class PaperAPI extends BaseAPI{
     private static JavaPlugin plugin;
     public static String prefix = "&7[&aStynxyxyAPI&7] &f";
     private static Map<String, PluginConfig> APIconfigurations;
+    @Getter
     private static DatabaseService databaseService;
 
     private static APIRegistry commandRegistry;
@@ -32,7 +35,6 @@ public class PaperAPI extends BaseAPI{
     public static void enableAPI(JavaPlugin sPlugin, Class<?>... dbClasses) {
         setAPI(new PaperAPI(sPlugin));
         setAPIlogger(plugin.getLogger());
-
         APIconfigurations = new HashMap<>();
 
 
@@ -42,7 +44,6 @@ public class PaperAPI extends BaseAPI{
         prefix = mainConfig.getFormatted("prefix");
         BaseAPI.setLanguage(mainConfig.getConfig().getString("language"));
         BaseAPI.setUsingDatabase(mainConfig.getConfig().getBoolean("database"));
-
         try {
             registerClassesAutomatically();
         } catch (Exception e) {
@@ -59,11 +60,20 @@ public class PaperAPI extends BaseAPI{
             BaseAPI.APIlogger.info("URL: "+databaseConfiguration.getConfig().getString("url"));
             BaseAPI.APIlogger.info("USERNAME: "+databaseConfiguration.getConfig().getString("username"));
             BaseAPI.APIlogger.info("PASSWORD: "+databaseConfiguration.getConfig().getString("password"));
-            databaseService = new SQLDatabaseService(databaseConfiguration.getConfig().getString("url"),
-                    databaseConfiguration.getConfig().getString("username"),
-                    databaseConfiguration.getConfig().getString("password"),
-                    dbClasses
-            );
+            try {
+                databaseService = new SQLDatabaseService(databaseConfiguration.getConfig().getString("url"),
+                        databaseConfiguration.getConfig().getString("username"),
+                        databaseConfiguration.getConfig().getString("password"),
+                        dbClasses
+                );
+            } catch (Exception e) {
+                BaseAPI.APIlogger.info("Couldn't connect to the database: ");
+                BaseAPI.APIlogger.warning(e.getMessage());
+                if (requiresDatabase) {
+                    BaseAPI.APIlogger.warning("Disabled Plugin");
+                    getCustomPlugin().setEnabled(false);
+                }
+            }
         }
 
         BaseAPI.APIlogger.info("Enabled " + prefix);
@@ -82,13 +92,9 @@ public class PaperAPI extends BaseAPI{
 
     public static void registerCommand(APICommand command) {
         commandRegistry.registerCommand(command);
+        BaseAPI.APIlogger.info("☑️Registered Command "+command.getName());
     }
-    public static void connectDatabase() {
-        if (!getUsingDatabase()) {
-            BaseAPI.APIlogger.warning("You are trying to Connect to a repository with disabling database support!");
-        }
 
-    }
     private static void registerClassesAutomatically() throws Exception {
         //Config Autoregister
         Set<Class<? extends PluginConfig>> configs = Annotationprocessor.findAutoRegisteredConfigs();
@@ -97,7 +103,6 @@ public class PaperAPI extends BaseAPI{
             Constructor<?>[] constructors = config.getDeclaredConstructors();
             for (Constructor<?> constructor: constructors) {
                 if (constructor.getParameterCount() == 0 ) {
-                    BaseAPI.APIlogger.info("construction way 1");
                     PluginConfig configInstance = (PluginConfig) constructor.newInstance();
                     configInstance.save();
                     APIconfigurations.put(configInstance.getClass().getSimpleName() + ".yml",configInstance);
@@ -109,6 +114,58 @@ public class PaperAPI extends BaseAPI{
             }
 
         }
+
+        //Command Autoregister
+        Set<Class<? extends APICommand>> commands = Annotationprocessor.findRegisteredCommands();
+        boolean registeredCurrent = false;
+        for (Class<? extends APICommand> commandclass : commands) {
+            registeredCurrent = false;
+            //Find Valid constructor
+            Constructor<?>[] constructors = commandclass.getDeclaredConstructors();
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterCount() == 0) {
+                    APICommand commandInstance = (APICommand) constructor.newInstance();
+                    registerCommand(commandInstance);
+                    registeredCurrent = true;
+                    continue;
+                } else if(constructor.getParameterCount() == 1 && constructor.getParameters()[0].getType() == String.class) {
+                    AutoRegister annotation = (AutoRegister) commandclass.getAnnotation(AutoRegister.class);
+                    APICommand instance;
+                    if (annotation.name().isEmpty()) {
+                        instance = (APICommand) constructor.newInstance(commandclass.getSimpleName());
+                    } else {
+                        instance = (APICommand) constructor.newInstance(annotation.name());
+                    }
+
+                    registerCommand(instance);
+                    registeredCurrent = true;
+                    break;
+                }
+
+            }
+            if (!registeredCurrent) {
+                BaseAPI.APIlogger.info("❌There was an Issue auto registering command: Too many or invalid Parameters: "+commandclass.getSimpleName());
+            }
+        }
+
+        //Listener Autoregister
+        Set<Class<?>> listeners = Annotationprocessor.getListeners();
+        for (Class<?> listener : listeners) {
+            try {
+                for (Constructor<?> constructor : listener.getConstructors()) {
+                    if (constructor.getParameterCount() == 0) {
+                        Listener listenerinstance = (Listener) constructor.newInstance();
+                        getCustomPlugin().getServer().getPluginManager().registerEvents(listenerinstance,getCustomPlugin());
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                BaseAPI.APIlogger.warning("There was an Issue registering the Listener: "+listener.getSimpleName());
+                BaseAPI.APIlogger.warning(e.getMessage());
+            }
+
+        }
+
     }
 
 
@@ -118,9 +175,8 @@ public class PaperAPI extends BaseAPI{
 
     public static PluginConfig getConfig(String name) {
         return Optional.ofNullable(APIconfigurations.get(name)).orElseThrow(() -> new IllegalStateException("didn't find config!"));
+
     }
-    public static DatabaseService getDatabaseService() {
-        return databaseService;
-    }
+
 
 }

@@ -1,11 +1,13 @@
-package de.stynxyxy.stynxyxyAPI.annotations.config;
+package de.stynxyxy.stynxyxyAPI.annotations.db;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AutoRegister {
+@Target(ElementType.TYPE)
+public @interface AutoRegisterEntity {
+    boolean force() default false;
+    boolean autorepository() default false;
 }
