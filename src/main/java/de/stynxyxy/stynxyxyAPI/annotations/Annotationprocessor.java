@@ -12,12 +12,16 @@ import org.bukkit.event.Listener;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Annotationprocessor {
     private static Reflections reflections;
     private static Set<Class<?>> listeners;
+
+    private static Map<Class<?>,Class<?>> repositoriesTodo;
 
     static {
         if (PaperAPI.getCustomPlugin() == null) {
@@ -26,6 +30,7 @@ public class Annotationprocessor {
         reflections = new Reflections(PaperAPI.getCustomPlugin().getClass().getPackageName());
 
         listeners = new HashSet<>();
+        repositoriesTodo = new HashMap<>();
 
     }
 
@@ -75,8 +80,7 @@ public class Annotationprocessor {
             if (annotation.autorepository()) {
                 for (Field field : clazz.getDeclaredFields()) {
                     if (field.isAnnotationPresent(Id.class)) {
-                        PaperAPI.getDatabaseService().createRepository(clazz,field.getType());
-                        BaseAPI.APIlogger.info("☑️Created Repository Automatically for Entity: "+clazz.getSimpleName()+ "and id: "+field.getName());
+                        repositoriesTodo.put(clazz,field.getType());
                     }
                 }
             }
@@ -86,5 +90,8 @@ public class Annotationprocessor {
 
     public static Set<Class<?>> getListeners() {
         return listeners;
+    }
+    public static Map<Class<?>,Class<?>> getRepositoriesTodo() {
+        return repositoriesTodo;
     }
 }

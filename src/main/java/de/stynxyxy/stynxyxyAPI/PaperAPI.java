@@ -21,7 +21,7 @@ public class PaperAPI extends BaseAPI{
     private static JavaPlugin plugin;
     public static String prefix = "&7[&aStynxyxyAPI&7] &f";
     private static Map<String, PluginConfig> APIconfigurations;
-    @Getter
+
     private static DatabaseService databaseService;
 
     private static APIRegistry commandRegistry;
@@ -66,9 +66,14 @@ public class PaperAPI extends BaseAPI{
                         databaseConfiguration.getConfig().getString("password"),
                         dbClasses
                 );
+                for (Class<?> newRepo : Annotationprocessor.getRepositoriesTodo().keySet()) {
+                    PaperAPI.getDatabaseService().createRepository(newRepo,Annotationprocessor.getRepositoriesTodo().get(newRepo));
+                    BaseAPI.APIlogger.info("☑️Created Repository Automatically for Entity: "+newRepo.getSimpleName()+ "and id: "+Annotationprocessor.getRepositoriesTodo().get(newRepo).getName());
+                }
             } catch (Exception e) {
                 BaseAPI.APIlogger.info("Couldn't connect to the database: ");
                 BaseAPI.APIlogger.warning(e.getMessage());
+                e.printStackTrace();
                 if (requiresDatabase) {
                     BaseAPI.APIlogger.warning("Disabled Plugin");
                     getCustomPlugin().setEnabled(false);
@@ -178,5 +183,10 @@ public class PaperAPI extends BaseAPI{
 
     }
 
-
+    public static DatabaseService getDatabaseService() {
+        if (!getUsingDatabase()) {
+            throw new RuntimeException("The Database is disabled");
+        }
+        return databaseService;
+    }
 }
