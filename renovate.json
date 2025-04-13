@@ -5,7 +5,8 @@
     {
       "matchManagers": ["maven"],
       "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true
+      "automerge": true,
+      "automergeType": "branch"
     }
   ]
 }
