@@ -1,9 +1,12 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ],
-  "packageRules": [{
-    "automerge": true
-  }]
+  "extends": ["config:recommended"],
+  "packageRules": [
+    {
+      "matchManagers": ["maven"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "branch"
+    }
+  ]
 }
