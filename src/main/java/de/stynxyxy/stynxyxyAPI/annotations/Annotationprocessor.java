@@ -20,7 +20,9 @@ import java.util.Set;
 public class Annotationprocessor {
     private static Reflections reflections;
     private static Set<Class<?>> listeners;
-
+    /**
+     * The queue of Repositories to automatically register;
+     */
     private static Map<Class<?>,Class<?>> repositoriesTodo;
 
     static {
@@ -34,6 +36,10 @@ public class Annotationprocessor {
 
     }
 
+    /**
+     * A Simple Way to find all {@link PluginConfig Configurations} with the {@link AutoRegisterConfig} Annotation
+     * @return A {@link Set<PluginConfig>} of PluginConfigs
+     */
     public static Set<Class<? extends PluginConfig>> findAutoRegisteredConfigs() {
         Set<Class<? extends PluginConfig>> configclasses = new HashSet<>();
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(AutoRegisterConfig.class);
@@ -49,6 +55,11 @@ public class Annotationprocessor {
         return configclasses;
     }
 
+    /**
+     * A Simple Way to find all {@link APICommand Configurations} with the {@link AutoRegister} Annotation
+     * @return A {@link Set<APICommand>} of APICommands
+     * @apiNote This works for {@link org.bukkit.command.Command SpigotCommands} and {@link APICommand APICommands} only!
+     */
     public static Set<Class<? extends APICommand>> findRegisteredCommands() {
         listeners.clear();
         Set<Class<? extends APICommand>> commandClasses = new HashSet<>();
@@ -68,6 +79,11 @@ public class Annotationprocessor {
 
     }
 
+    /**
+     * A Simple Way to find all Classes with the {@link Entity} and the {@link AutoRegisterEntity} Annotation
+     * @return A {@link Set} of Classes
+     * @apiNote There can also be Classes without the {@link Entity EntityAnnotation} if the Attribute force {@link Boolean true}
+     */
     public static Set<Class<?>> findEntites() {
         Set<Class<?>> entityClasses = new HashSet<>();
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(AutoRegisterEntity.class);
@@ -88,9 +104,21 @@ public class Annotationprocessor {
         return entityClasses;
     }
 
+    /**
+     * A Simple way to find all {@link Listener Listeners}
+     * @return A {@link Set} of Listeners
+     * @apiNote Do only use this Method if findRegisteredCommands was already called
+     * The findRegisteredCommands Method will be automatically called on the Plugin start
+     */
     public static Set<Class<?>> getListeners() {
         return listeners;
     }
+    /**
+     * A Simple way to find all {@link Class Entites} to create a Repository for
+     * @return A {@link Map} of Classes
+     * @apiNote Do only use this Method if findEntites was already called
+     * The findEntites Method will be automatically called on the Plugin start if the Database Connection is {@link Boolean true}
+     */
     public static Map<Class<?>,Class<?>> getRepositoriesTodo() {
         return repositoriesTodo;
     }

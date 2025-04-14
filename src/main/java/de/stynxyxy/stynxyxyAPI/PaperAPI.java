@@ -2,6 +2,7 @@ package de.stynxyxy.stynxyxyAPI;
 
 import de.stynxyxy.stynxyxyAPI.annotations.Annotationprocessor;
 import de.stynxyxy.stynxyxyAPI.annotations.AutoRegister;
+import de.stynxyxy.stynxyxyAPI.annotations.config.AutoRegisterConfig;
 import de.stynxyxy.stynxyxyAPI.command.APICommand;
 import de.stynxyxy.stynxyxyAPI.command.APIRegistry;
 import de.stynxyxy.stynxyxyAPI.config.custom.DatabaseConfiguration;
@@ -9,7 +10,6 @@ import de.stynxyxy.stynxyxyAPI.config.custom.MainConfig;
 import de.stynxyxy.stynxyxyAPI.config.PluginConfig;
 import de.stynxyxy.stynxyxyAPI.database.DatabaseService;
 import de.stynxyxy.stynxyxyAPI.database.sql.SQLDatabaseService;
-import lombok.Getter;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,12 +26,23 @@ public class PaperAPI extends BaseAPI{
 
     private static APIRegistry commandRegistry;
 
-
+    /**
+     * The private Constructor
+     * @param sPlugin
+     */
 
     private PaperAPI(JavaPlugin sPlugin) {
         plugin = sPlugin;
         commandRegistry = new APIRegistry();
     }
+
+    /**
+     * The Required Activation Method
+     * @param sPlugin The {@link JavaPlugin PaperPlugin} to Enable the API with
+     * @param dbClasses Preprocessed Entities to register Entities manually
+     * @implNote
+     * If you don't want to register {@link jakarta.persistence.Entity DatabaseEnties} yet, use enableAPI(JavaPlugin sPlugin) instead
+     */
     public static void enableAPI(JavaPlugin sPlugin, Class<?>... dbClasses) {
         setAPI(new PaperAPI(sPlugin));
         setAPIlogger(plugin.getLogger());
@@ -84,16 +95,28 @@ public class PaperAPI extends BaseAPI{
         BaseAPI.APIlogger.info("Enabled " + prefix);
     }
 
+    /**
+     *  The Required Activation Method, Without any preprocessed Entities
+     * @param sPlugin The {@link JavaPlugin PaperPlugin } to enable the API for
+     */
     public static void enableAPI(JavaPlugin sPlugin) {
         enableAPI(sPlugin, new Class[0]);
     }
 
-
+    /**
+     * @return The current {@link JavaPlugin PaperPlugin} used in this API
+     */
 
     public static JavaPlugin getCustomPlugin() {
         return plugin;
     }
 
+    /**
+     * The manual way to register {@link org.bukkit.command.Command BukkitCommands}
+     *      * @param command
+     * @implNote You can also use the {@link AutoRegister} annotation for autoRegistering SpigotCommands
+
+     */
 
     public static void registerCommand(APICommand command) {
         commandRegistry.registerCommand(command);
@@ -173,15 +196,32 @@ public class PaperAPI extends BaseAPI{
 
     }
 
-
+    /**
+     * The manual way to register {@link PluginConfig pluginConfigs}
+     * @param config The Config instance to register
+     * @apiNote
+     * For automatic registration use the {@link AutoRegisterConfig} Annotation instead
+     */
     public static void registerConfig(PluginConfig config) {
         APIconfigurations.put(config.getFile().getName().replace(".yml",""),config);
     }
 
+    /**
+     * A simple Way to get a Config out of the Registry
+     * @param name The Identifier of the registered Configuration
+     * @return {@link PluginConfig} the Configuration
+     * @apiNote If you used the {@link AutoRegisterConfig} Annotation use the Name of the {@link PluginConfig configClass}
+     */
     public static PluginConfig getConfig(String name) {
         return Optional.ofNullable(APIconfigurations.get(name)).orElseThrow(() -> new IllegalStateException("didn't find config!"));
 
     }
+
+    /**
+     * A simple Way to get the DatabaseService
+     * @return {@link DatabaseService} The APIDatabaseService
+     * @apiNote Don't call if you disabled the Database
+     */
 
     public static DatabaseService getDatabaseService() {
         if (!getUsingDatabase()) {
