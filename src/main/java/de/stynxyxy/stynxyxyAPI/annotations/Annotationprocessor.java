@@ -5,6 +5,7 @@ import de.stynxyxy.stynxyxyAPI.PaperAPI;
 import de.stynxyxy.stynxyxyAPI.annotations.config.AutoRegisterConfig;
 import de.stynxyxy.stynxyxyAPI.annotations.db.AutoRegisterEntity;
 import de.stynxyxy.stynxyxyAPI.command.APICommand;
+import de.stynxyxy.stynxyxyAPI.command.paper.PaperCommand;
 import de.stynxyxy.stynxyxyAPI.config.PluginConfig;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -20,6 +21,7 @@ import java.util.Set;
 public class Annotationprocessor {
     private static Reflections reflections;
     private static Set<Class<?>> listeners;
+    private static Set<Class<? extends PaperCommand>> papercommands;
     /**
      * The queue of Repositories to automatically register;
      */
@@ -33,7 +35,7 @@ public class Annotationprocessor {
 
         listeners = new HashSet<>();
         repositoriesTodo = new HashMap<>();
-
+        papercommands = new HashSet<>();
     }
 
     /**
@@ -62,12 +64,17 @@ public class Annotationprocessor {
      */
     public static Set<Class<? extends APICommand>> findRegisteredCommands() {
         listeners.clear();
+        papercommands.clear();
         Set<Class<? extends APICommand>> commandClasses = new HashSet<>();
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(AutoRegister.class);
         for (Class<?> clazz: classes) {
             if (APICommand.class.isAssignableFrom(clazz)) {
                 Class<? extends APICommand> commandClass = (Class<? extends APICommand>) clazz;
                 commandClasses.add(commandClass);
+            }
+            if (PaperCommand.class.isAssignableFrom(clazz)) {
+                Class<? extends PaperCommand> paperCommandClass = (Class<? extends PaperCommand>) clazz;
+                papercommands.add(paperCommandClass);
             }
             if (Listener.class.isAssignableFrom(clazz)) {
                 Class<?> listener = clazz;
@@ -78,6 +85,8 @@ public class Annotationprocessor {
         return commandClasses;
 
     }
+
+
 
     /**
      * A Simple Way to find all Classes with the {@link Entity} and the {@link AutoRegisterEntity} Annotation
@@ -121,5 +130,14 @@ public class Annotationprocessor {
      */
     public static Map<Class<?>,Class<?>> getRepositoriesTodo() {
         return repositoriesTodo;
+    }
+    /**
+     * A Simple way to find all {@link PaperCommand PaperCommands}
+     * @return A {@link Set} of PaperCommands
+     * @apiNote Do only use this Method if findRegisteredCommands was already called
+     * The findRegisteredCommands Method will be automatically called on the Plugin start
+     */
+    public static Set<Class<? extends PaperCommand>> getPapercommands() {
+        return papercommands;
     }
 }

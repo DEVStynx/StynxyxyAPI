@@ -6,7 +6,7 @@
 
     <groupId>de.stynxyxy</groupId>
     <artifactId>stynxyxyapi</artifactId>
-    <version>1.0.4-BETA</version>
+    <version>1.0.5-ALPHA</version>
     <packaging>jar</packaging>
 
     <name>stynxyxyapi</name>
@@ -84,9 +84,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.hibernate.orm</groupId>
+            <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.6.13.Final</version>
+            <version>7.0.0-SNAPSHOT</version>
             <type>pom</type>
         </dependency>
         <dependency>

@@ -5,11 +5,13 @@ import de.stynxyxy.stynxyxyAPI.annotations.AutoRegister;
 import de.stynxyxy.stynxyxyAPI.annotations.config.AutoRegisterConfig;
 import de.stynxyxy.stynxyxyAPI.command.APICommand;
 import de.stynxyxy.stynxyxyAPI.command.APIRegistry;
+import de.stynxyxy.stynxyxyAPI.command.paper.PaperCommand;
 import de.stynxyxy.stynxyxyAPI.config.custom.DatabaseConfiguration;
 import de.stynxyxy.stynxyxyAPI.config.custom.MainConfig;
 import de.stynxyxy.stynxyxyAPI.config.PluginConfig;
 import de.stynxyxy.stynxyxyAPI.database.DatabaseService;
 import de.stynxyxy.stynxyxyAPI.database.sql.SQLDatabaseService;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -123,6 +125,12 @@ public class PaperAPI extends BaseAPI{
         BaseAPI.APIlogger.info("☑️Registered Command "+command.getName());
     }
 
+    public static void registerPaperCommand(PaperCommand command) {
+        getCustomPlugin().getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
+            commands.registrar().register(command.build());
+        });
+    }
+
     private static void registerClassesAutomatically() throws Exception {
         //Config Autoregister
         Set<Class<? extends PluginConfig>> configs = Annotationprocessor.findAutoRegisteredConfigs();
@@ -173,6 +181,35 @@ public class PaperAPI extends BaseAPI{
             }
             if (!registeredCurrent) {
                 BaseAPI.APIlogger.info("❌There was an Issue auto registering command: Too many or invalid Parameters: "+commandclass.getSimpleName());
+            }
+        }
+        //Paper Commands Autoregister
+        for (Class<? extends PaperCommand> commandClass : Annotationprocessor.getPapercommands()) {
+            registeredCurrent = false;
+            Constructor<?>[] constructors = commandClass.getDeclaredConstructors();
+            for (Constructor<?> constructor: constructors) {
+                if (constructor.getParameterCount() == 0) {
+                    PaperCommand paperCommand = (PaperCommand) constructor.newInstance();
+                    registerPaperCommand(paperCommand);
+                    registeredCurrent = true;
+                    break;
+                } else if(constructor.getParameterCount() == 1 && constructor.getParameters()[0].getType() == String.class) {
+                    AutoRegister annotation = (AutoRegister) commandClass.getAnnotation(AutoRegister.class);
+                    PaperCommand instance;
+                    if (annotation.name().isEmpty()) {
+                        instance = (PaperCommand) constructor.newInstance(commandClass.getSimpleName());
+                    } else {
+                        instance = (PaperCommand) constructor.newInstance(annotation.name());
+                    }
+                    registerPaperCommand(instance);
+                    registeredCurrent = true;
+                    break;
+                }
+
+            }
+            if (!registeredCurrent) {
+                BaseAPI.APIlogger.info("❌There was an Issue auto registering command: Too many or invalid Parameters: "+commandClass.getSimpleName());
+
             }
         }
 
